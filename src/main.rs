@@ -1,3 +1,4 @@
+use std::cell::{Cell, RefCell};
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::sync::Arc;
@@ -42,6 +43,19 @@ fn main() {
             println!("{}", s)
         });
     }
+    let c = Cell::new("mufen");
+    let one = c.get();
+    c.set("wang pan");
+    let two = c.get();
+    println!("{}, {}", one, two);
+    
+    // =============== Rc RefCell =================
+    let s = Rc::new(RefCell::new("I have many owners".to_string()));
+    let s1 = s.clone();
+    let s2 = s.clone();
+    s2.borrow_mut().push_str(", oh yeah");
+
+    println!("{:?}\n{:?}\n{:?}", s, s1, s2);
 }
 
 
