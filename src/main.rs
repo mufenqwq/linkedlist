@@ -1,4 +1,7 @@
 use std::ops::{Deref, DerefMut};
+use std::rc::Rc;
+use std::sync::Arc;
+use std::thread;
 
 mod first;
 mod second;
@@ -20,7 +23,7 @@ fn main() {
     let x = Box::new(1);
     let sum = *x + 1;
     println!("{}", sum);
-    
+
     let y = MyBox::new(5);
     assert_eq!(5, *y);
     let s = String::from("Hello world!");
@@ -30,7 +33,17 @@ fn main() {
     let s1 = &s;
     let s2 = s.to_string();
     display(&(*s));
+    let a = Rc::new(String::from("hello, world!"));
+    let b = Rc::clone(&a);
+    let s = Arc::new(String::from("多线程漫游者"));
+    for _ in 1..10 {
+        let s = Arc::clone(&s);
+        let handle = thread::spawn(move || {
+            println!("{}", s)
+        });
+    }
 }
+
 
 fn display(s: &str) {
     println!("{}", s);
@@ -42,21 +55,21 @@ fn display_mut(s: &mut String) {
 }
 struct MyBox<T>(T);
 
-impl <T> MyBox<T> {
-    fn new (x: T) -> MyBox<T> {
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
         MyBox(x)
     }
 }
-impl <T> Deref for MyBox<T> {
+impl<T> Deref for MyBox<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl <T> DerefMut for MyBox<T> {
+impl<T> DerefMut for MyBox<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-       &mut self.0
+        &mut self.0
     }
 }
 #[derive(Debug)]

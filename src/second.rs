@@ -1,4 +1,3 @@
-
 pub struct List<T> {
     head: Link<T>,
 }
@@ -68,18 +67,18 @@ pub struct Iter<'a, T> {
     next: Option<&'a Node<T>>,
 }
 
-impl <T> List<T> {
+impl<T> List<T> {
     pub fn iter<'a>(&'a self) -> Iter<'a, T> {
-        Iter {next: self.head.as_deref().map(|node| &*node)}
+        Iter { next: self.head.as_deref().map(|node| &*node) }
     }
 }
 
-impl <'a, T> Iterator for Iter<'a, T> {
+impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next.map(|node| {
-           self.next = node.next.as_deref(); // todo node.next 类型为 Option<Box<Node<T>>> -> as_deref 
+            self.next = node.next.as_deref(); // todo node.next 不可变引用实现了Copy trait 所以可以直接使用，不需要take()
             &node.elem
         })
     }
@@ -89,25 +88,22 @@ pub struct IterMut<'a, T> {
     next: Option<&'a mut Node<T>>,
 }
 
-impl <T> List<T> {
+impl<T> List<T> {
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
-        IterMut {next: self.head.as_deref_mut() }
+        IterMut { next: self.head.as_deref_mut() }
     }
 }
 
-impl <'a, T> Iterator for IterMut<'a, T> {
+impl<'a, T> Iterator for IterMut<'a, T> {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.next.take().map(|node| {
+        self.next.take().map(|node| { // todo map 会取走Option<T> 里面 T 的所有权
             self.next = node.next.as_deref_mut();
             &mut node.elem
         })
     }
 }
-
-
-
 
 
 #[cfg(test)]
@@ -164,12 +160,27 @@ mod test {
     #[test]
     fn into_iter() {
         let mut list = List::new();
-        list.push(1); list.push(2);list.push(3);
+        list.push(1);
+        list.push(2);
+        list.push(3);
 
         let mut iter = list.into_iter();
         assert_eq!(iter.next(), Some(3));
         assert_eq!(iter.next(), Some(2));
         assert_eq!(iter.next(), Some(1));
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn iter_mut() {
+        let mut list = List::new();
+        list.push(1);
+        list.push(2);
+        list.push(3);
+
+        let mut iter = list.iter_mut();
+        assert_eq!(iter.next(), Some(&mut 3));
+        assert_eq!(iter.next(), Some(&mut 2));
+        assert_eq!(iter.next(), Some(&mut 1));
     }
 }
